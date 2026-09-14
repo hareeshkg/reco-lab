@@ -1,0 +1,52 @@
+{
+  "name": "recolab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "overrides": {
+    "deepmerge-ts": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "dev": "next dev --hostname localhost",
+    "build": "prisma generate && next build --webpack",
+    "start": "next start --hostname localhost",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --reporter=verbose",
+    "test:e2e": "playwright test",
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "db:generate": "prisma generate"
+  },
+  "dependencies": {
+    "@next/env": "^16.3.5",
+    "@prisma/client": "^6.19.3",
+    "google-auth-library": "^11.0.2",
+    "googleapis": "^181.0.0",
+    "html-to-text": "^10.0.1",
+    "next": "^16.3.5",
+    "pdfjs-dist": "^6.3.289",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/html-to-text": "^9.0.4",
+    "@types/node": "^26.5.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.5",
+    "pdf-lib": "^1.17.1",
+    "prettier": "^3.9.6",
+    "prisma": "^6.19.3",
+    "tsx": "^4.23.13",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.11"
+  }
+}

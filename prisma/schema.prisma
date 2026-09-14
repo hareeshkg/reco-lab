@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model GmailAccount {
+  id                    String   @id @default(cuid())
+  email                 String   @unique
+  encryptedRefreshToken String?
+  scope                 String
+  connectedAt           DateTime @default(now())
+  disconnectedAt        DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model OAuthAttempt {
+  stateHash         String @id
+  encryptedVerifier String
+  expiresAt         DateTime
+}
+
+model EmailSource {
+  id                   String @id @default(cuid())
+  provider             String
+  accountEmail         String
+  gmailQuery           String
+  after                String?
+  before               String?
+  acceptedSendersJson  String
+  subjectPatternsJson  String
+  active               Boolean @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  messages             SourceMessage[]
+}
+
+model SourceMessage {
+  id                String @id @default(cuid())
+  gmailMessageId    String
+  accountEmail      String
+  gmailThreadId     String
+  sourceId          String
+  source            EmailSource @relation(fields: [sourceId], references: [id])
+  receivedAt        DateTime
+  sentAt            DateTime?
+  fromAddress       String
+  subject           String
+  contentSha256     String
+  hasPdfAttachment  Boolean
+  importStatus      String
+  parserVersion     String
+  importedAt        DateTime @default(now())
+  errorCode         String?
+  errorMessage      String?
+  warningsJson      String @default("[]")
+  recommendations   Recommendation[]
+  @@unique([accountEmail, gmailMessageId])
+  @@index([sourceId, importStatus])
+}
+
+model Recommendation {
+  id                   String @id @default(cuid())
+  sourceMessageId      String
+  sourceMessage        SourceMessage @relation(fields: [sourceMessageId], references: [id], onDelete: Cascade)
+  ordinal              Int
+  provider             String
+  category             String?
+  reportReference      String?
+  publishedAt          DateTime?
+  availableAt          DateTime
+  companyName          String?
+  symbol               String?
+  bseCode              String?
+  action               String?
+  recommendedPrice     Float?
+  entryLow             Float?
+  entryHigh            Float?
+  primaryTarget        Float?
+  stopLoss             Float?
+  statedUpsidePercent  Float?
+  horizon              String?
+  rationale            String?
+  status               String
+  extractionConfidence Float
+  reviewStatus         String @default("NEEDS_REVIEW")
+  approvedAt           DateTime?
+  parserVersion        String
+  revision             Int @default(1)
+  manualFieldsJson     String @default("[]")
+  warningsJson         String @default("[]")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  targets              RecommendationTarget[]
+  evidence             FieldEvidence[]
+  events               RecommendationEvent[]
+  versions             RecommendationVersion[]
+  @@unique([sourceMessageId, ordinal])
+  @@index([reviewStatus, availableAt])
+  @@index([symbol, provider, category])
+}
+
+model RecommendationTarget {
+  id               String @id @default(cuid())
+  recommendationId String
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  sequence         Int
+  price            Float
+  label            String?
+  @@unique([recommendationId, sequence])
+}
+
+model FieldEvidence {
+  id               String @id @default(cuid())
+  recommendationId String
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  fieldName        String
+  extractedValue   String
+  evidenceSnippet  String
+  confidence       Float
+  extractionMethod String
+}
+
+model RecommendationEvent {
+  id                 String @id @default(cuid())
+  recommendationId   String
+  recommendation     Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  sourceMessageId    String
+  eventType          String
+  effectiveAt        DateTime
+  relatedRecommendationId String?
+  previousValuesJson String
+  newValuesJson      String
+  matchConfidence    Float
+  reviewStatus       String @default("NEEDS_REVIEW")
+}
+
+model RecommendationVersion {
+  id               String @id @default(cuid())
+  recommendationId String
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  revision         Int
+  reason           String
+  snapshotJson     String
+  createdAt        DateTime @default(now())
+  @@unique([recommendationId, revision])
+}
+
+model AuditLog {
+  id        String @id @default(cuid())
+  action    String
+  entityId  String?
+  createdAt DateTime @default(now())
+}
